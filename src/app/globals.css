@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #0369a1;
+  --color-brand-dark: #075985;
+  --color-sky: #0ea5e9;
+  --color-fill: #bae6fd;
+  --color-track: #f0f9ff;
+  --color-deep: #0c4a6e;
+
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+  --color-card: #ffffff;
+  --color-sheet: #dceefb;
+
+  --color-danger: #dc2626;
+  --color-amber-bg: #fef3c7;
+  --color-amber-fg: #92400e;
+  --color-green-bg: #dcfce7;
+  --color-green-fg: #166534;
+}
+
+/* Values alias next/font vars from layout.tsx — must use @theme inline, not @theme. */
+@theme inline {
+  --font-sans: var(--font-google-sans);
+  --font-display: var(--font-google-sans);
+  --font-mono: var(--font-google-sans-code);
+}
+
+@layer base {
+  body {
+    color: var(--color-ink);
+    font-family: var(--font-google-sans), ui-sans-serif, system-ui, sans-serif;
+
+    /* Fixed background-attachment stutters when scrolling on iOS Safari — scroll below 768px. */
+    background-color: var(--color-sheet);
+    background-image: url("/bg-mobile.jpg");
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+  }
+
+  @media (min-width: 768px) {
+    body {
+      background-image: url("/bg.jpg");
+      background-attachment: fixed;
+    }
+  }
+
+  /* a11y floor: keep a visible focus ring — never bare outline:none. */
+  :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--color-brand) 40%, transparent);
+    outline-offset: 2px;
+  }
+
+  /* Must stay ≥16px or iOS Safari zooms the page on focus. */
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* @property registers --ang as an angle so the rotation can be animated smoothly. */
+@property --ang {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes runline {
+  to {
+    --ang: 360deg;
+  }
+}
+
+@keyframes bump {
+  0% {
+    background-color: #dbf1fe;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes caret-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+@keyframes trace-beat {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+@layer components {
+  .shot-veil {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(270deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 15%),
+      linear-gradient(
+        165deg,
+        rgba(3, 105, 161, 0.34) 0%,
+        rgba(12, 74, 110, 0.12) 46%,
+        rgba(12, 74, 110, 0.32) 100%
+      );
+  }
+
+  /* Two-layer mask with exclude cuts out the center, leaving only the ring. */
+  .live-ring::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 9px;
+    padding: 2px;
+    background: conic-gradient(
+      from var(--ang),
+      transparent 0 56%,
+      #7dd3fc 72%,
+      var(--color-brand) 85%,
+      #7dd3fc 92%,
+      transparent 98% 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: runline 5.5s linear infinite;
+    pointer-events: none;
+  }
+
+  /* Removed and re-added by FieldRow to replay — a CSS animation class won't restart on its own. */
+  .bump-flash {
+    animation: bump 0.9s ease-out;
+  }
+
+  .trace-beat {
+    display: inline-block;
+    animation: trace-beat 1.4s ease-in-out infinite;
+  }
+
+  .caret-blink {
+    display: inline-block;
+    width: 2px;
+    height: 15px;
+    margin-left: 2px;
+    vertical-align: -2px;
+    background: var(--color-brand);
+    animation: caret-blink 1s steps(2, start) infinite;
+  }
+}
